@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -61,7 +62,13 @@ public class SecurityConfig {
             var key = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             decoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
         } else {
-            decoder = NimbusJwtDecoder.withJwkSetUri(supabaseUrl + "/auth/v1/.well-known/jwks.json").build();
+            // Supabase signing keys are ES256 (P-256) by default; RS256 kept for older projects.
+            decoder = NimbusJwtDecoder.withJwkSetUri(supabaseUrl + "/auth/v1/.well-known/jwks.json")
+                .jwsAlgorithms(algs -> {
+                    algs.add(SignatureAlgorithm.RS256);
+                    algs.add(SignatureAlgorithm.ES256);
+                })
+                .build();
         }
         OAuth2TokenValidator<Jwt> audience = token -> {
             List<String> aud = token.getAudience();
