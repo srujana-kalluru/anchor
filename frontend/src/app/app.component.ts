@@ -1,0 +1,75 @@
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { SupabaseService } from './core/supabase.service';
+import { StoreService } from './core/store.service';
+import { LoginComponent } from './features/login.component';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet, LoginComponent],
+  template: `
+    @if (!supabase.ready()) {
+      <div class="empty">Loading…</div>
+    } @else if (!supabase.session()) {
+      <app-login />
+    } @else {
+      @if (showChrome()) {
+        <div class="syncdot">
+          <span class="d" [class.off]="store.syncState() === 'offline'" [class.spin]="store.syncState() === 'syncing'"></span>
+          {{ syncLabel() }}
+        </div>
+      }
+      <router-outlet />
+      @if (showChrome()) {
+        <nav class="tabbar">
+          <button class="tab" [class.on]="url().startsWith('/today') || url().startsWith('/task')" (click)="go('/today')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/></svg>
+            Today
+          </button>
+          <button class="tab" [class.on]="url().startsWith('/breaks')" (click)="go('/breaks')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h11v6a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V8z"/><path d="M16 9h1.6a2.4 2.4 0 0 1 0 4.8H16"/></svg>
+            Breaks
+          </button>
+          <button class="tab" [class.on]="url().startsWith('/insights')" (click)="go('/insights')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V11M12 19V5M19 19v-8"/></svg>
+            Insights
+          </button>
+          <button class="tab" [class.on]="url().startsWith('/settings')" (click)="go('/settings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 19.4a7.6 7.6 0 0 1 14.4 0"/></svg>
+            Profile
+          </button>
+        </nav>
+      }
+    }
+  `
+})
+export class AppComponent {
+  supabase = inject(SupabaseService);
+  store = inject(StoreService);
+  private router = inject(Router);
+
+  url = signal('/today');
+  showChrome = computed(() => !this.url().startsWith('/focus'));
+  syncLabel = computed(() => {
+    const s = this.store.syncState();
+    return s === 'offline' ? 'Offline' : s === 'syncing' ? 'Syncing' : 'Synced';
+  });
+
+  private initialised = false;
+
+  constructor() {
+    this.router.events.subscribe(e => {
+      if (e instanceof NavigationEnd) this.url.set(e.urlAfterRedirects);
+    });
+    effect(() => {
+      if (this.supabase.session() && !this.initialised) {
+        this.initialised = true;
+        void this.store.init();
+      }
+    });
+  }
+
+  go(path: string): void {
+    void this.router.navigateByUrl(path);
+  }
+}
