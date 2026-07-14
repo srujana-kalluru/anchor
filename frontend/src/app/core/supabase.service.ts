@@ -35,6 +35,23 @@ export class SupabaseService {
     });
   }
 
+  /** Re-runs Google sign-in asking for Drive file access; used by backup. */
+  async connectDrive(): Promise<void> {
+    await this.client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: location.origin + location.pathname,
+        scopes: 'https://www.googleapis.com/auth/drive.file',
+        queryParams: { prompt: 'consent' }
+      }
+    });
+  }
+
+  /** Google's own access token; present only while the OAuth grant is fresh. */
+  providerToken(): string | null {
+    return this.session()?.provider_token ?? null;
+  }
+
   async signOut(): Promise<void> {
     await this.client.auth.signOut();
   }
