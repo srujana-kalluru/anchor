@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, NavigationError, Router, RouterOutlet } from '@angular/router';
 import { SupabaseService } from './core/supabase.service';
 import { StoreService } from './core/store.service';
 import { LoginComponent } from './features/login.component';
@@ -59,7 +59,21 @@ export class AppComponent {
 
   constructor() {
     this.router.events.subscribe(e => {
-      if (e instanceof NavigationEnd) this.url.set(e.urlAfterRedirects);
+      if (e instanceof NavigationEnd) {
+        this.url.set(e.urlAfterRedirects);
+        sessionStorage.removeItem('anchor.chunkReload');
+      }
+      if (e instanceof NavigationError) {
+        // A lazy route chunk that fails to fetch (flaky network, stale service worker)
+        // otherwise dies silently and the tab bar just feels dead. Reload once to recover.
+        const msg = String((e.error as Error | undefined)?.message ?? e.error ?? '');
+        console.error('navigation failed:', msg);
+        if (/dynamically imported module|Loading chunk|ChunkLoadError|Importing a module script failed/i.test(msg)
+            && !sessionStorage.getItem('anchor.chunkReload')) {
+          sessionStorage.setItem('anchor.chunkReload', '1');
+          location.reload();
+        }
+      }
     });
     effect(() => {
       if (this.supabase.session() && !this.initialised) {
