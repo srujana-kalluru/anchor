@@ -102,7 +102,7 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
           </div>
         } @empty {
           <div style="font-size:15px;color:var(--ink3);padding:10px 2px">
-            None yet. Categories emerge from your own vocabulary.
+            None yet.
           </div>
         }
         <div class="addstep" style="margin-top:14px">
@@ -131,7 +131,6 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
       @if (panel() === 'menu') {
         <div class="navrow"><button class="back" (click)="panel.set('main')">‹ Settings</button></div>
         <div class="greet" style="font-size:23px">Dopamine Menu</div>
-        <div class="subline">The category names are fixed; the contents are entirely yours.</div>
         @for (course of menuCourses; track course.key) {
           <div class="menucat">
             <h4>{{ course.label }} <span>{{ course.hint }}</span></h4>
@@ -155,7 +154,7 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
       @if (panel() === 'requestors') {
         <div class="navrow"><button class="back" (click)="panel.set('main')">‹ Settings</button></div>
         <div class="greet" style="font-size:23px">Who-asked names</div>
-        <div class="subline">Rename to fix a typo everywhere; remove to drop from autocomplete.</div>
+        <div class="subline">Renames apply to every task.</div>
         @for (r of store.requestors(); track r.id) {
           <div class="setrow">
             <input [ngModel]="r.name" (ngModelChange)="drafts[r.id] = $event" (blur)="renameRequestor(r.id)" style="flex:1" />

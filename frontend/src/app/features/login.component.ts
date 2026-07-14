@@ -23,7 +23,7 @@ import { SupabaseService } from '../core/supabase.service';
         Continue with Google
       </button>
       <p style="color:var(--ink3);font-size:13px;margin-top:22px;max-width:280px;line-height:1.5">
-        One account, every device. Your tasks live on your own server and nowhere else.
+        One account, every device.
       </p>
     </div>
   `

@@ -10,7 +10,7 @@ import { STARTER_MENU, STARTER_SOURCES } from '../core/models';
       <div class="grab"></div>
       <div style="font-size:20px;font-weight:600;letter-spacing:-.01em">First one's in.</div>
       <div style="font-size:14.5px;color:var(--ink2);margin-top:6px;line-height:1.5">
-        Want a head start? Everything below is editable, deletable, and entirely yours. This sheet never appears again.
+        A head start, if you want one. All of it can be changed in Settings.
       </div>
       <div class="sechead" style="margin-top:18px">Sources</div>
       <div class="chips" style="padding-top:2px">
