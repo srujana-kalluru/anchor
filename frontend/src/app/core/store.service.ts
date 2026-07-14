@@ -464,15 +464,36 @@ export class StoreService {
 
   // ---- user ----
 
-  async patchUser(patch: Partial<{
+  private pendingUserPatch: Record<string, unknown> = {};
+  private userFlushTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * The switch flips instantly; the network write is debounced so a burst of taps
+   * becomes one request, and a stale server response never overwrites a newer tap.
+   */
+  patchUser(patch: Partial<{
     displayName: string; timezone: string; digestEnabled: boolean; digestTime: string;
     focusMinutes: number; breakMinutes: number; keepScreenOn: boolean;
   }>): Promise<void> {
     const u = this.user();
     if (u) this.user.set({ ...u, ...patch });
+    Object.assign(this.pendingUserPatch, patch);
+    if (this.userFlushTimer) clearTimeout(this.userFlushTimer);
+    this.userFlushTimer = setTimeout(() => void this.flushUserPatch(), 350);
+    void this.persist();
+    return Promise.resolve();
+  }
+
+  private async flushUserPatch(): Promise<void> {
+    this.userFlushTimer = null;
+    const patch = this.pendingUserPatch;
+    this.pendingUserPatch = {};
+    if (!Object.keys(patch).length) return;
     try {
       const saved = await this.api.write<User>('PATCH', '/api/v1/users/me', patch);
-      this.user.set(saved);
+      if (!Object.keys(this.pendingUserPatch).length && !this.userFlushTimer) {
+        this.user.set(saved);
+      }
     } catch (e) {
       this.swallowQueued(e);
     }

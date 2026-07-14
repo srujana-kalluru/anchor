@@ -224,21 +224,28 @@ export class SettingsComponent {
     this.newMenuDurations[course] = null;
   }
 
+  private digestBusy = false;
+
   async toggleDigest(): Promise<void> {
     const u = this.user();
-    if (!u) return;
+    if (!u || this.digestBusy) return;
+    this.digestBusy = true;
     this.pushError.set(null);
-    if (!u.digestEnabled) {
-      try {
+    const enable = !u.digestEnabled;
+    // Flip the switch immediately; register in the background and revert on failure.
+    void this.store.patchUser({ digestEnabled: enable });
+    try {
+      if (enable) {
         // The only permission prompt in the app.
         await this.push.enable();
-        await this.store.patchUser({ digestEnabled: true });
-      } catch (e) {
-        this.pushError.set(e instanceof Error ? e.message : 'Notification permission was not granted.');
+      } else {
+        await this.push.disable();
       }
-    } else {
-      await this.push.disable();
-      await this.store.patchUser({ digestEnabled: false });
+    } catch (e) {
+      void this.store.patchUser({ digestEnabled: false });
+      this.pushError.set(e instanceof Error ? e.message : 'Notification permission was not granted.');
+    } finally {
+      this.digestBusy = false;
     }
   }
 

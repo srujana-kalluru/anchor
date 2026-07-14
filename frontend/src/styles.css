@@ -29,7 +29,7 @@ body {
 }
 
 button, input, select, textarea { font: inherit; color: inherit; }
-button { background: none; border: none; cursor: pointer; padding: 0; text-align: inherit; }
+button { background: none; border: none; cursor: pointer; padding: 0; text-align: inherit; touch-action: manipulation; }
 input, textarea { border: none; outline: none; background: transparent; width: 100%; }
 input::placeholder, textarea::placeholder { color: var(--ink3); }
 a { color: var(--indigo-deep); text-decoration: none; }
