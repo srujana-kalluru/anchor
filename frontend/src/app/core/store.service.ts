@@ -475,7 +475,7 @@ export class StoreService {
    */
   patchUser(patch: Partial<{
     displayName: string; timezone: string; digestEnabled: boolean; digestTime: string;
-    focusMinutes: number; breakMinutes: number; keepScreenOn: boolean; driveBackupEnabled: boolean;
+    focusMinutes: number; breakMinutes: number; keepScreenOn: boolean;
   }>): Promise<void> {
     const u = this.user();
     if (u) this.user.set({ ...u, ...patch });

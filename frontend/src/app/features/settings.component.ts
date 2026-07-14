@@ -3,8 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { StoreService } from '../core/store.service';
 import { PushService } from '../core/push.service';
 import { SupabaseService } from '../core/supabase.service';
-import { ApiService } from '../core/api.service';
-import { User } from '../core/models';
 import { MENU_COURSES, MenuCourse, MenuItem } from '../core/models';
 
 type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
@@ -57,20 +55,6 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
           <span>Keep screen on during focus</span>
           <button class="switch" [class.on]="user()?.keepScreenOn" (click)="toggleWakeLock()"></button>
         </div>
-
-        <div class="sechead">Backup</div>
-        <div class="setrow">
-          <span>Back up to Google Drive</span>
-          <button class="switch" [class.on]="user()?.driveBackupEnabled" (click)="toggleDriveBackup()"></button>
-        </div>
-        @if (user()?.driveBackupEnabled) {
-          <div class="setrow">
-            <span style="color:var(--ink2)">{{ lastBackupLabel() }}</span>
-            <button style="color:var(--indigo-deep);font-weight:500" (click)="driveBackupNow()">
-              {{ backupBusy() ? 'Backing up…' : 'Back up now' }}
-            </button>
-          </div>
-        }
 
         <div class="sechead">Lists</div>
         <button class="setrow" (click)="panel.set('categories')">
@@ -186,11 +170,8 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
 })
 export class SettingsComponent {
   store = inject(StoreService);
-  private api = inject(ApiService);
   private push = inject(PushService);
   private supabase = inject(SupabaseService);
-
-  backupBusy = signal(false);
 
   panel = signal<Panel>('main');
   user = computed(() => this.store.user());
@@ -204,38 +185,6 @@ export class SettingsComponent {
   menuCourses = MENU_COURSES;
   newMenuLabels: Partial<Record<MenuCourse, string>> = {};
   newMenuDurations: Partial<Record<MenuCourse, number | null>> = {};
-
-  lastBackupLabel = computed(() => {
-    const at = this.user()?.lastDriveBackupAt;
-    if (!at) return 'No backup yet';
-    const days = Math.floor((Date.now() - Date.parse(at)) / 86_400_000);
-    if (days === 0) return 'Backed up today';
-    if (days === 1) return 'Backed up yesterday';
-    return `Backed up ${days} days ago`;
-  });
-
-  toggleDriveBackup(): void {
-    const u = this.user();
-    if (!u) return;
-    if (u.driveBackupEnabled) {
-      void this.store.patchUser({ driveBackupEnabled: false });
-    } else if (u.driveBackupReady) {
-      void this.store.patchUser({ driveBackupEnabled: true });
-      this.driveBackupNow();
-    } else {
-      // One-time consent that gives the server its backup credential.
-      void this.supabase.connectDrive();
-    }
-  }
-
-  driveBackupNow(): void {
-    if (this.backupBusy()) return;
-    this.backupBusy.set(true);
-    this.api.write<User>('POST', '/api/v1/backup/run')
-      .then(u => this.store.user.set(u))
-      .catch(() => undefined)
-      .finally(() => this.backupBusy.set(false));
-  }
 
   menuItemsFor(course: MenuCourse): MenuItem[] {
     return this.store.menuItems().filter(m => m.course === course).sort((a, b) => a.sortOrder - b.sortOrder);

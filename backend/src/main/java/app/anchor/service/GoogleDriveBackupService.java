@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +74,7 @@ public class GoogleDriveBackupService {
         return clientId != null && !clientId.isBlank() && clientSecret != null && !clientSecret.isBlank();
     }
 
-    @Scheduled(cron = "0 20 * * * *")
+    // Not scheduled while backup is paused; re-add @Scheduled(cron = "0 20 * * * *") to resume.
     @Transactional
     public void scheduledRun() {
         if (!configured()) return;

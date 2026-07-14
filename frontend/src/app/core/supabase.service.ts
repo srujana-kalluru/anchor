@@ -31,35 +31,8 @@ export class SupabaseService {
   async signInWithGoogle(): Promise<void> {
     await this.client.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: location.origin + location.pathname,
-        // Drive permission is part of the single sign-in consent; the refresh token
-        // Google returns on first grant lets the server back up with no further asks.
-        scopes: 'https://www.googleapis.com/auth/drive.file',
-        queryParams: { access_type: 'offline' }
-      }
+      options: { redirectTo: location.origin + location.pathname }
     });
-  }
-
-  /**
-   * One-time re-consent that makes Google issue a refresh token for the server.
-   * Needed only for accounts that signed up before Drive was part of sign-in.
-   */
-  async connectDrive(): Promise<void> {
-    const email = this.session()?.user?.email;
-    await this.client.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: location.origin + location.pathname,
-        scopes: 'https://www.googleapis.com/auth/drive.file',
-        queryParams: { access_type: 'offline', prompt: 'consent', ...(email ? { login_hint: email } : {}) }
-      }
-    });
-  }
-
-  /** Present only on the redirect back from a consent that issued one. */
-  providerRefreshToken(): string | null {
-    return this.session()?.provider_refresh_token ?? null;
   }
 
   async signOut(): Promise<void> {
