@@ -63,42 +63,67 @@ export class StoreService {
     }
   }
 
+  // Resources load independently; a single failed request must never block the rest.
+  // Anything that failed retries with backoff.
   async refresh(): Promise<void> {
     try {
       await this.api.replay();
-      const [user, tasks, categories, sources, requestors, menuItems, insights] = await Promise.all([
-        this.api.get<User>('/api/v1/users/me'),
-        this.api.get<Task[]>('/api/v1/tasks'),
-        this.api.get<Category[]>('/api/v1/categories'),
-        this.api.get<Source[]>('/api/v1/sources'),
-        this.api.get<Requestor[]>('/api/v1/requestors'),
-        this.api.get<MenuItem[]>('/api/v1/dopamine-menu'),
-        this.api.get<InsightsSummary>('/api/v1/insights/summary')
-      ]);
-      this.user.set(user);
-      this.tasks.set(tasks);
-      this.categories.set(categories);
-      this.sources.set(sources);
-      this.requestors.set(requestors);
-      this.menuItems.set(menuItems);
-      this.insights.set(insights);
-      this.since = new Date().toISOString();
-      void this.api.write('POST', '/api/v1/activity/ping', { date: localIsoDate() }).catch(() => undefined);
+    } catch {
+      // Queue replay retries on the next poll.
+    }
+    const [user, tasks, categories, sources, requestors, menuItems, insights] = await Promise.allSettled([
+      this.api.get<User>('/api/v1/users/me'),
+      this.api.get<Task[]>('/api/v1/tasks'),
+      this.api.get<Category[]>('/api/v1/categories'),
+      this.api.get<Source[]>('/api/v1/sources'),
+      this.api.get<Requestor[]>('/api/v1/requestors'),
+      this.api.get<MenuItem[]>('/api/v1/dopamine-menu'),
+      this.api.get<InsightsSummary>('/api/v1/insights/summary')
+    ]);
+    if (user.status === 'fulfilled') {
+      this.user.set(user.value);
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (user.timezone !== tz) {
+      if (user.value.timezone !== tz) {
         void this.patchUser({ timezone: tz });
       }
-      this.autoSurfaceDue();
-      await this.persist();
-    } catch {
-      // Offline start: the snapshot (if any) is already showing.
     }
+    if (tasks.status === 'fulfilled') {
+      this.tasks.set(tasks.value);
+      this.since = new Date().toISOString();
+      this.autoSurfaceDue();
+    }
+    if (categories.status === 'fulfilled') this.categories.set(categories.value);
+    if (sources.status === 'fulfilled') this.sources.set(sources.value);
+    if (requestors.status === 'fulfilled') this.requestors.set(requestors.value);
+    if (menuItems.status === 'fulfilled') this.menuItems.set(menuItems.value);
+    if (insights.status === 'fulfilled') this.insights.set(insights.value);
+    const results = [user, tasks, categories, sources, requestors, menuItems, insights];
+    if (results.some(r => r.status === 'fulfilled')) {
+      void this.api.write('POST', '/api/v1/activity/ping', { date: localIsoDate() }).catch(() => undefined);
+    }
+    if (results.some(r => r.status === 'rejected')) {
+      this.scheduleRefreshRetry();
+    } else {
+      this.refreshRetries = 0;
+    }
+    await this.persist();
+  }
+
+  private refreshRetries = 0;
+
+  private scheduleRefreshRetry(): void {
+    if (this.refreshRetries >= 5) return;
+    const delay = Math.min(30_000, 3000 * 2 ** this.refreshRetries++);
+    setTimeout(() => void this.refresh(), delay);
   }
 
   private async poll(): Promise<void> {
     if (!navigator.onLine) return;
     try {
       const progressed = await this.api.replay();
+      if (!this.user()) {
+        this.user.set(await this.api.get<User>('/api/v1/users/me'));
+      }
       const delta = await this.api.get<Delta>(`/api/v1/sync/delta?since=${encodeURIComponent(this.since)}`);
       this.applyDelta(delta);
       this.autoSurfaceDue();
@@ -136,7 +161,7 @@ export class StoreService {
     if (d.sources.length) this.sources.update(list => mergeById(list, d.sources));
     if (d.requestors.length) {
       this.requestors.update(list => mergeById(list, d.requestors));
-      // A requestor renamed on another device applies to every task referencing it (PRD 4.5).
+      // Apply cross-device requestor renames to the tasks that reference them.
       const names = new Map(this.requestors().map(r => [r.id, r.name]));
       this.tasks.update(list => list.map(t =>
         t.requestorId && names.has(t.requestorId) && names.get(t.requestorId) !== t.requestorName
@@ -146,7 +171,7 @@ export class StoreService {
     if (d.menuItems.length) this.menuItems.update(list => mergeById(list, d.menuItems));
   }
 
-  /** PRD 4.1: a task whose due date has arrived moves into Today automatically. */
+  /** A task whose due date has arrived surfaces into Today. */
   private autoSurfaceDue(): void {
     const today = localIsoDate();
     for (const t of this.tasks()) {

@@ -79,7 +79,7 @@ const THREE_HOURS = 3 * 3600_000;
         } @else {
           <div class="kicker">Break over</div>
           <div class="big">0:00</div>
-          <div class="lab">That was {{ r.totalMs ? minutes(r.totalMs) : 'your break' }}{{ r.course === 'dessert' ? ' — nice, you stopped.' : '.' }}</div>
+          <div class="lab">That was {{ r.totalMs ? minutes(r.totalMs) : 'your break' }}{{ r.course === 'dessert' ? ' - nice, you stopped.' : '.' }}</div>
           <button class="btn" (click)="backToTask()">Back to task</button>
         }
       </div>

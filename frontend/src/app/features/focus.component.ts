@@ -30,7 +30,7 @@ const LS_LAST_TASK = 'anchor.lastTask';
                     style="transition:stroke-dashoffset 0.5s linear" />
           </svg>
         </div>
-        <div style="font-size:15px;color:var(--ink2);font-weight:500;margin-top:6px">{{ remainingLabel() }}</div>
+        <div style="font-size:16px;color:var(--ink2);font-weight:500;margin-top:6px">{{ remainingLabel() }}</div>
 
         <div style="width:100%;max-width:420px;margin-top:24px">
           @for (s of t.steps; track s.id) {
@@ -42,7 +42,7 @@ const LS_LAST_TASK = 'anchor.lastTask';
               <span class="sq"></span>{{ s.title }}
             </button>
           } @empty {
-            <div style="text-align:center;color:var(--ink3);font-size:13.5px;padding:8px">
+            <div style="text-align:center;color:var(--ink3);font-size:14.5px;padding:8px">
               No steps written for this task.
             </div>
           }
@@ -53,9 +53,9 @@ const LS_LAST_TASK = 'anchor.lastTask';
         }
 
         <div class="pillrow" style="display:flex;gap:10px;margin-top:22px;width:100%;max-width:420px">
-          <button style="flex:1;height:46px;border-radius:13px;border:1px solid var(--hair);font-size:14.5px;font-weight:500"
+          <button style="flex:1;height:46px;border-radius:13px;border:1px solid var(--hair);font-size:15.5px;font-weight:500"
                   (click)="pause()">Pause</button>
-          <button style="flex:1;height:46px;border-radius:13px;border:1px solid var(--hair);font-size:14.5px;font-weight:500"
+          <button style="flex:1;height:46px;border-radius:13px;border:1px solid var(--hair);font-size:15.5px;font-weight:500"
                   (click)="needBreak()">Need a break</button>
         </div>
       </div>

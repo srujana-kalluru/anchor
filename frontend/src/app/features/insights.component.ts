@@ -34,7 +34,7 @@ import { localIsoDate } from '../core/ageing';
 
         <div class="tile">
           <h5>Consistency</h5>
-          <div style="font-size:16px;font-weight:500;margin-top:9px">
+          <div style="font-size:17px;font-weight:500;margin-top:9px">
             Used {{ ins.daysUsedOfLast14 }} of the last 14 days
           </div>
           <div class="dots">
@@ -63,7 +63,7 @@ import { localIsoDate } from '../core/ageing';
               <div class="track"><div class="fill" [style.width.%]="pct(s.count)" [style.opacity]="opacity($index)"></div></div>
             </div>
           } @empty {
-            <div style="font-size:13.5px;color:var(--ink3);margin-top:8px">No captures in range yet.</div>
+            <div style="font-size:14.5px;color:var(--ink3);margin-top:8px">No captures in range yet.</div>
           }
         </div>
 

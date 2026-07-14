@@ -23,7 +23,7 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
         <div class="navrow">
           <button class="back" (click)="back()">‹ Today</button>
           <div style="position:relative">
-            <button style="color:var(--ink3);font-weight:600;letter-spacing:.12em;font-size:16px;padding:4px 8px"
+            <button style="color:var(--ink3);font-weight:600;letter-spacing:.12em;font-size:17px;padding:4px 8px"
                     (click)="menuOpen.set(!menuOpen())">···</button>
             @if (menuOpen()) {
               <div class="overflow-menu">
@@ -43,7 +43,7 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
           <textarea rows="1" style="font-size:22px;font-weight:600;line-height:1.3;letter-spacing:-.01em;resize:none;field-sizing:content"
                     [ngModel]="t.title" (ngModelChange)="titleDraft.set($event)" (blur)="saveTitle()"></textarea>
         </div>
-        <div style="font-size:12.5px;color:var(--ink2);margin:8px 0 8px 36px">
+        <div style="font-size:13.5px;color:var(--ink2);margin:8px 0 8px 36px">
           {{ captured() }}
         </div>
 
@@ -89,7 +89,7 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
             @for (c of store.categories(); track c.id) {
               <button class="chip" [class.on]="t.categoryId === c.id" (click)="setCategory(c.id)">{{ c.name }}</button>
             }
-            <input style="width:130px;border:1.5px dashed var(--hair);border-radius:17px;padding:7px 14px;font-size:13px"
+            <input style="width:130px;border:1.5px dashed var(--hair);border-radius:17px;padding:7px 14px;font-size:14px"
                    placeholder="New category" [(ngModel)]="newCategory" (keydown.enter)="addCategory()" />
           </div>
         }
@@ -100,7 +100,7 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
             <input type="date" style="width:auto;font-weight:500;color:var(--indigo-deep)"
                    [ngModel]="t.dueDate" (ngModelChange)="setDue($event)" />
             @if (t.dueDate) {
-              <button style="color:var(--ink3);font-size:13px" (click)="setDue(null)">Clear</button>
+              <button style="color:var(--ink3);font-size:14px" (click)="setDue(null)">Clear</button>
             }
           </span>
         </div>
@@ -124,7 +124,7 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string }[] = [
               <button class="sq" [class.done]="s.complete" (click)="toggleStep(s.id, !s.complete)"
                       [style.background]="s.complete ? 'var(--indigo)' : ''" [style.borderColor]="s.complete ? 'var(--indigo)' : ''"></button>
               <input [ngModel]="s.title" (ngModelChange)="stepDrafts[s.id] = $event" (blur)="saveStep(s.id)" />
-              <button style="color:var(--ink3);font-size:17px;padding:0 4px" (click)="removeStep(s.id)">×</button>
+              <button style="color:var(--ink3);font-size:18px;padding:0 4px" (click)="removeStep(s.id)">×</button>
             </div>
           }
         </div>

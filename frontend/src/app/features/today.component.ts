@@ -38,11 +38,11 @@ import { StarterSheetComponent } from './starter-sheet.component';
       } @empty {
         @if (!upNext().length && !simmering().length && !doneToday().length) {
           <div class="empty">
-            <div style="font-size:15px;max-width:220px;line-height:1.5">Nothing here yet. Type your first task below.</div>
+            <div style="font-size:16px;max-width:220px;line-height:1.5">Nothing here yet. Type your first task below.</div>
             <div class="arrow">↓</div>
           </div>
         } @else {
-          <div style="font-size:14px;color:var(--ink3);padding:6px 2px">Nothing scheduled for today.</div>
+          <div style="font-size:15px;color:var(--ink3);padding:6px 2px">Nothing scheduled for today.</div>
         }
       }
 
@@ -135,7 +135,7 @@ export class TodayComponent {
     if (user && !user.starterOffered) {
       this.starterOpen.set(true);
     }
-    // PRD 4.1: submitting immediately scrolls the new task into view.
+    // Bring the new task into view.
     setTimeout(() => {
       const newest = this.upNext()[0];
       if (newest) {

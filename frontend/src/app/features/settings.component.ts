@@ -14,6 +14,9 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
     <div class="page">
       @if (panel() === 'main') {
         <div class="greet" style="font-size:23px">Settings</div>
+        @if (!user()) {
+          <div class="subline">Loading your settings…</div>
+        }
 
         <div class="sechead">Notifications</div>
         <div class="setrow">
@@ -21,7 +24,7 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
           <button class="switch" [class.on]="user()?.digestEnabled" (click)="toggleDigest()"></button>
         </div>
         @if (pushError()) {
-          <div style="font-size:12.5px;color:var(--amber-text);padding:8px 2px">{{ pushError() }}</div>
+          <div style="font-size:13.5px;color:var(--amber-text);padding:8px 2px">{{ pushError() }}</div>
         }
         @if (user()?.digestEnabled) {
           <div class="setrow">
@@ -80,8 +83,8 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
         <button class="bigbtn danger" style="margin-top:30px" (click)="deleteAccount()">
           {{ confirmDelete() ? 'Tap again to permanently delete everything' : 'Delete account data' }}
         </button>
-        <div style="font-size:12px;color:var(--ink3);margin-top:10px;line-height:1.5">
-          Removes every task, list, and session from the server. The Google sign-in itself is managed in Supabase.
+        <div style="font-size:13px;color:var(--ink3);margin-top:10px;line-height:1.5">
+          Permanently removes all your tasks, lists, and history.
         </div>
       }
 
@@ -95,10 +98,10 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
                      style="width:26px;height:26px;border:none;border-radius:6px;padding:0;background:none" />
               <input [ngModel]="c.name" (ngModelChange)="drafts[c.id] = $event" (blur)="renameCategory(c.id)" style="flex:1" />
             </span>
-            <button style="color:var(--red);font-size:13.5px;font-weight:500" (click)="store.deleteCategory(c.id)">Delete</button>
+            <button style="color:var(--red);font-size:14.5px;font-weight:500" (click)="store.deleteCategory(c.id)">Delete</button>
           </div>
         } @empty {
-          <div style="font-size:14px;color:var(--ink3);padding:10px 2px">
+          <div style="font-size:15px;color:var(--ink3);padding:10px 2px">
             None yet. Categories emerge from your own vocabulary.
           </div>
         }
@@ -114,10 +117,10 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
         @for (s of store.sources(); track s.id) {
           <div class="setrow">
             <input [ngModel]="s.name" (ngModelChange)="drafts[s.id] = $event" (blur)="renameSource(s.id)" style="flex:1" />
-            <button style="color:var(--red);font-size:13.5px;font-weight:500" (click)="store.deleteSource(s.id)">Delete</button>
+            <button style="color:var(--red);font-size:14.5px;font-weight:500" (click)="store.deleteSource(s.id)">Delete</button>
           </div>
         } @empty {
-          <div style="font-size:14px;color:var(--ink3);padding:10px 2px">No sources defined.</div>
+          <div style="font-size:15px;color:var(--ink3);padding:10px 2px">No sources defined.</div>
         }
         <div class="addstep" style="margin-top:14px">
           <span>＋</span>
@@ -157,10 +160,10 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
           <div class="setrow">
             <input [ngModel]="r.name" (ngModelChange)="drafts[r.id] = $event" (blur)="renameRequestor(r.id)" style="flex:1" />
             <span class="r">{{ r.useCount }}×</span>
-            <button style="color:var(--red);font-size:13.5px;font-weight:500" (click)="store.deleteRequestor(r.id)">Remove</button>
+            <button style="color:var(--red);font-size:14.5px;font-weight:500" (click)="store.deleteRequestor(r.id)">Remove</button>
           </div>
         } @empty {
-          <div style="font-size:14px;color:var(--ink3);padding:10px 2px">Names appear here as you capture.</div>
+          <div style="font-size:15px;color:var(--ink3);padding:10px 2px">Names appear here as you capture.</div>
         }
       }
     </div>
@@ -227,7 +230,7 @@ export class SettingsComponent {
     this.pushError.set(null);
     if (!u.digestEnabled) {
       try {
-        // The permission prompt fires here and only here (PRD 4.5): the single moment Anchor asks.
+        // The only permission prompt in the app.
         await this.push.enable();
         await this.store.patchUser({ digestEnabled: true });
       } catch (e) {

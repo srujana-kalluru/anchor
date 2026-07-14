@@ -10,7 +10,7 @@ import { SupabaseService } from '../core/supabase.service';
         <path d="M12 8v11M12 19c-3.8 0-6.5-2.3-7-5l2.2 1M12 19c3.8 0 6.5-2.3 7-5l-2.2 1M8 10.5h8"/>
       </svg>
       <h1 style="font-size:30px;font-weight:600;letter-spacing:-.02em;margin-top:20px">Anchor</h1>
-      <p style="color:var(--ink2);font-size:15px;margin-top:8px;max-width:280px;line-height:1.5">
+      <p style="color:var(--ink2);font-size:16px;margin-top:8px;max-width:280px;line-height:1.5">
         Capture requests before they're forgotten. Make time visible.
       </p>
       <button class="gbtn" (click)="signIn()">
@@ -22,7 +22,7 @@ import { SupabaseService } from '../core/supabase.service';
         </svg>
         Continue with Google
       </button>
-      <p style="color:var(--ink3);font-size:12px;margin-top:22px;max-width:280px;line-height:1.5">
+      <p style="color:var(--ink3);font-size:13px;margin-top:22px;max-width:280px;line-height:1.5">
         One account, every device. Your tasks live on your own server and nowhere else.
       </p>
     </div>

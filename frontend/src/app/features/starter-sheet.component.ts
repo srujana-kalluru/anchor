@@ -5,13 +5,11 @@ import { STARTER_MENU, STARTER_SOURCES } from '../core/models';
 @Component({
   selector: 'app-starter-sheet',
   template: `
-    <!-- Tapping outside declines, same as Skip: a modal that only its own buttons can
-         close reads as a frozen app on mobile. -->
     <div class="scrim" (click)="skip()"></div>
     <div class="sheet">
       <div class="grab"></div>
       <div style="font-size:20px;font-weight:600;letter-spacing:-.01em">First one's in.</div>
-      <div style="font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.5">
+      <div style="font-size:14.5px;color:var(--ink2);margin-top:6px;line-height:1.5">
         Want a head start? Everything below is editable, deletable, and entirely yours. This sheet never appears again.
       </div>
       <div class="sechead" style="margin-top:18px">Sources</div>

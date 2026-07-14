@@ -31,7 +31,7 @@ import { StoreService } from '../core/store.service';
             <button class="chip" [class.on]="sourceId() === s.id" (click)="pick(s.id)">{{ s.name }}</button>
           }
           @if (!store.sources().length) {
-            <span style="font-size:13px;color:var(--ink3)">No sources yet — add them in Settings.</span>
+            <span style="font-size:14px;color:var(--ink3)">No sources yet - add them in Settings.</span>
           }
         </div>
       </div>

@@ -126,25 +126,19 @@ export interface TaskPatchResult {
 }
 
 export const MENU_COURSES: { key: MenuCourse; label: string; hint: string }[] = [
-  { key: 'appetiser', label: 'Appetisers', hint: '2–5 min' },
+  { key: 'appetiser', label: 'Appetisers', hint: '2-5 min' },
   { key: 'side', label: 'Sides', hint: 'ongoing' },
-  { key: 'entree', label: 'Entrées', hint: '10–30 min' },
+  { key: 'entree', label: 'Entrées', hint: '10-30 min' },
   { key: 'dessert', label: 'Desserts', hint: 'hard limit' },
   { key: 'special', label: 'Specials', hint: 'open-ended' }
 ];
 
-export const STARTER_SOURCES = ['Slack', 'WhatsApp', 'Hangouts', 'Email', 'Meeting', 'Verbal'];
+export const STARTER_SOURCES = ['Email', 'In Person', 'Slack', 'Phone', 'WhatsApp'];
 
 export const STARTER_MENU: { course: MenuCourse; label: string; durationMinutes: number | null }[] = [
   { course: 'appetiser', label: 'Step outside', durationMinutes: 3 },
-  { course: 'appetiser', label: 'Glass of cold water', durationMinutes: 2 },
-  { course: 'appetiser', label: 'Play one song', durationMinutes: 4 },
   { course: 'side', label: 'Instrumental playlist', durationMinutes: null },
-  { course: 'side', label: 'Fidget toy', durationMinutes: null },
   { course: 'entree', label: 'Short walk outside', durationMinutes: 15 },
-  { course: 'entree', label: 'Make a proper coffee', durationMinutes: 10 },
   { course: 'dessert', label: 'Social media', durationMinutes: 10 },
-  { course: 'dessert', label: 'YouTube', durationMinutes: 10 },
-  { course: 'special', label: 'Gym session', durationMinutes: null },
-  { course: 'special', label: 'Long nature walk', durationMinutes: null }
+  { course: 'special', label: 'Gym session', durationMinutes: null }
 ];
