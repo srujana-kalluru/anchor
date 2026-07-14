@@ -47,9 +47,11 @@ export class StoreService {
     if (snap) {
       this.tasks.set(snap.tasks);
       this.categories.set(snap.categories);
-      this.sources.set(snap.sources);
+      // A cached list can hold same-name items with different ids from an earlier optimistic
+      // add; collapse them so the UI never shows duplicates while the fresh fetch loads.
+      this.sources.set(dedupe(snap.sources, s => s.name));
       this.requestors.set(snap.requestors);
-      this.menuItems.set(snap.menuItems);
+      this.menuItems.set(dedupe(snap.menuItems, m => m.course + '|' + m.label));
       this.user.set(snap.user);
       this.insights.set(snap.insights);
       this.since = snap.since;
@@ -577,5 +579,12 @@ function mergeById<T extends { id: string; deletedAt?: string | null }>(list: T[
       map.set(item.id, existing ? { ...existing, ...item } : item);
     }
   }
+  return [...map.values()];
+}
+
+/** Keep one entry per logical key (last wins), so a stale cache never renders duplicates. */
+function dedupe<T>(list: T[], keyOf: (x: T) => string): T[] {
+  const map = new Map<string, T>();
+  for (const item of list) map.set(keyOf(item), item);
   return [...map.values()];
 }
