@@ -5,7 +5,9 @@ import { STARTER_MENU, STARTER_SOURCES } from '../core/models';
 @Component({
   selector: 'app-starter-sheet',
   template: `
-    <div class="scrim"></div>
+    <!-- Tapping outside declines, same as Skip: a modal that only its own buttons can
+         close reads as a frozen app on mobile. -->
+    <div class="scrim" (click)="skip()"></div>
     <div class="sheet">
       <div class="grab"></div>
       <div style="font-size:20px;font-weight:600;letter-spacing:-.01em">First one's in.</div>
