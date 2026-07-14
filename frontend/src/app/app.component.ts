@@ -4,7 +4,8 @@ import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs';
 import { SupabaseService } from './core/supabase.service';
 import { StoreService } from './core/store.service';
-import { DriveBackupService, LS_PENDING } from './core/drive-backup.service';
+import { ApiService } from './core/api.service';
+import { User } from './core/models';
 import { LoginComponent } from './features/login.component';
 
 @Component({
@@ -59,7 +60,7 @@ export class AppComponent {
   });
 
   private swUpdate = inject(SwUpdate);
-  private driveBackup = inject(DriveBackupService);
+  private api = inject(ApiService);
   private initialised = false;
 
   constructor() {
@@ -83,15 +84,13 @@ export class AppComponent {
     effect(() => {
       if (this.supabase.session() && !this.initialised) {
         this.initialised = true;
+        const refreshToken = this.supabase.providerRefreshToken();
         void this.store.init().then(() => {
-          if (localStorage.getItem(LS_PENDING) === '1' && this.driveBackup.tokenAvailable) {
-            // Returning from the Drive consent round-trip: finish what the user started.
-            localStorage.removeItem(LS_PENDING);
-            this.driveBackup.setEnabled(true);
-            void this.driveBackup.backupNow().catch(() => undefined);
-            void this.router.navigateByUrl('/settings');
-          } else {
-            void this.driveBackup.maybeAutoBackup();
+          if (refreshToken) {
+            // Google issued the server's backup credential during sign-in; store it once.
+            void this.api.write<User>('POST', '/api/v1/backup/credential', { refreshToken })
+              .then(u => this.store.user.set(u))
+              .catch(() => undefined);
           }
         });
       }

@@ -50,6 +50,7 @@ public class UserController {
         if (present(req.focusMinutes())) u.setFocusMinutes(clamp(req.focusMinutes().get(), 5, 120));
         if (present(req.breakMinutes())) u.setBreakMinutes(clamp(req.breakMinutes().get(), 1, 60));
         if (present(req.keepScreenOn())) u.setKeepScreenOn(req.keepScreenOn().get());
+        if (present(req.driveBackupEnabled())) u.setDriveBackupEnabled(req.driveBackupEnabled().get());
         return UserDto.of(users.save(u));
     }
 

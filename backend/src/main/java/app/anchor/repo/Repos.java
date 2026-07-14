@@ -16,6 +16,7 @@ public interface Repos {
 
     interface Users extends JpaRepository<UserAccount, UUID> {
         List<UserAccount> findByDigestEnabledTrue();
+        List<UserAccount> findByDriveBackupEnabledTrue();
     }
 
     interface Tasks extends JpaRepository<Task, UUID> {

@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { StoreService } from '../core/store.service';
 import { PushService } from '../core/push.service';
 import { SupabaseService } from '../core/supabase.service';
-import { DriveBackupService, LS_PENDING } from '../core/drive-backup.service';
+import { ApiService } from '../core/api.service';
+import { User } from '../core/models';
 import { MENU_COURSES, MenuCourse, MenuItem } from '../core/models';
 
 type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
@@ -60,18 +61,15 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
         <div class="sechead">Backup</div>
         <div class="setrow">
           <span>Back up to Google Drive</span>
-          <button class="switch" [class.on]="drive.enabled()" (click)="toggleDriveBackup()"></button>
+          <button class="switch" [class.on]="user()?.driveBackupEnabled" (click)="toggleDriveBackup()"></button>
         </div>
-        @if (drive.enabled()) {
+        @if (user()?.driveBackupEnabled) {
           <div class="setrow">
             <span style="color:var(--ink2)">{{ lastBackupLabel() }}</span>
             <button style="color:var(--indigo-deep);font-weight:500" (click)="driveBackupNow()">
-              {{ drive.busy() ? 'Backing up…' : 'Back up now' }}
+              {{ backupBusy() ? 'Backing up…' : 'Back up now' }}
             </button>
           </div>
-        }
-        @if (drive.error()) {
-          <div style="font-size:13.5px;color:var(--amber-text);padding:8px 2px">{{ drive.error() }}</div>
         }
 
         <div class="sechead">Lists</div>
@@ -188,9 +186,11 @@ type Panel = 'main' | 'categories' | 'sources' | 'requestors' | 'menu';
 })
 export class SettingsComponent {
   store = inject(StoreService);
-  drive = inject(DriveBackupService);
+  private api = inject(ApiService);
   private push = inject(PushService);
   private supabase = inject(SupabaseService);
+
+  backupBusy = signal(false);
 
   panel = signal<Panel>('main');
   user = computed(() => this.store.user());
@@ -206,37 +206,35 @@ export class SettingsComponent {
   newMenuDurations: Partial<Record<MenuCourse, number | null>> = {};
 
   lastBackupLabel = computed(() => {
-    const at = this.drive.lastBackupAt();
+    const at = this.user()?.lastDriveBackupAt;
     if (!at) return 'No backup yet';
-    const days = Math.floor((Date.now() - at) / 86_400_000);
+    const days = Math.floor((Date.now() - Date.parse(at)) / 86_400_000);
     if (days === 0) return 'Backed up today';
     if (days === 1) return 'Backed up yesterday';
     return `Backed up ${days} days ago`;
   });
 
   toggleDriveBackup(): void {
-    if (this.drive.enabled()) {
-      this.drive.setEnabled(false);
-      return;
-    }
-    if (this.drive.tokenAvailable) {
-      this.drive.setEnabled(true);
-      void this.drive.backupNow().catch(() => undefined);
+    const u = this.user();
+    if (!u) return;
+    if (u.driveBackupEnabled) {
+      void this.store.patchUser({ driveBackupEnabled: false });
+    } else if (u.driveBackupReady) {
+      void this.store.patchUser({ driveBackupEnabled: true });
+      this.driveBackupNow();
     } else {
-      // Round-trip through Google for Drive permission; the app resumes the backup on return.
-      localStorage.setItem(LS_PENDING, '1');
+      // One-time consent that gives the server its backup credential.
       void this.supabase.connectDrive();
     }
   }
 
   driveBackupNow(): void {
-    if (this.drive.busy()) return;
-    this.drive.backupNow().catch((e: Error) => {
-      if (e.message === 'RECONNECT') {
-        localStorage.setItem(LS_PENDING, '1');
-        void this.supabase.connectDrive();
-      }
-    });
+    if (this.backupBusy()) return;
+    this.backupBusy.set(true);
+    this.api.write<User>('POST', '/api/v1/backup/run')
+      .then(u => this.store.user.set(u))
+      .catch(() => undefined)
+      .finally(() => this.backupBusy.set(false));
   }
 
   menuItemsFor(course: MenuCourse): MenuItem[] {

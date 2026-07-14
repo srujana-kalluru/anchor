@@ -25,27 +25,25 @@ export class SupabaseService {
     });
     this.client.auth.onAuthStateChange((_event, session) => {
       this.session.set(session);
-      // Google's token arrives only on the OAuth callback and is dropped on session
-      // refresh; keep it for its real lifetime so Drive calls don't re-authorize hourly.
-      if (session?.provider_token) {
-        localStorage.setItem('anchor.gtoken', JSON.stringify({
-          t: session.provider_token,
-          e: Date.now() + 50 * 60_000
-        }));
-      }
     });
   }
 
   async signInWithGoogle(): Promise<void> {
     await this.client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: location.origin + location.pathname }
+      options: {
+        redirectTo: location.origin + location.pathname,
+        // Drive permission is part of the single sign-in consent; the refresh token
+        // Google returns on first grant lets the server back up with no further asks.
+        scopes: 'https://www.googleapis.com/auth/drive.file',
+        queryParams: { access_type: 'offline' }
+      }
     });
   }
 
   /**
-   * Re-runs Google sign-in asking for Drive file access. Google shows the consent
-   * screen only the first time; afterwards this is a silent redirect and back.
+   * One-time re-consent that makes Google issue a refresh token for the server.
+   * Needed only for accounts that signed up before Drive was part of sign-in.
    */
   async connectDrive(): Promise<void> {
     const email = this.session()?.user?.email;
@@ -54,22 +52,14 @@ export class SupabaseService {
       options: {
         redirectTo: location.origin + location.pathname,
         scopes: 'https://www.googleapis.com/auth/drive.file',
-        queryParams: email ? { login_hint: email } : {}
+        queryParams: { access_type: 'offline', prompt: 'consent', ...(email ? { login_hint: email } : {}) }
       }
     });
   }
 
-  /** Google's own access token: the live one, or the cached one while still valid. */
-  providerToken(): string | null {
-    const live = this.session()?.provider_token;
-    if (live) return live;
-    try {
-      const cached = JSON.parse(localStorage.getItem('anchor.gtoken') ?? 'null');
-      if (cached && cached.e > Date.now()) return cached.t as string;
-    } catch {
-      // Fall through.
-    }
-    return null;
+  /** Present only on the redirect back from a consent that issued one. */
+  providerRefreshToken(): string | null {
+    return this.session()?.provider_refresh_token ?? null;
   }
 
   async signOut(): Promise<void> {

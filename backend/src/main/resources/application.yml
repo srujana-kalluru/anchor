@@ -26,6 +26,9 @@ anchor:
     jwt-secret: ${SUPABASE_JWT_SECRET:}
   cors:
     origins: ${CORS_ORIGINS:http://localhost:4200}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
   vapid:
     public-key: ${VAPID_PUBLIC_KEY:}
     private-key: ${VAPID_PRIVATE_KEY:}

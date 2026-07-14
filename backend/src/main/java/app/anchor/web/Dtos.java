@@ -93,18 +93,20 @@ public final class Dtos {
 
     public record UserDto(UUID id, String email, String displayName, String timezone, boolean digestEnabled,
                           String digestTime, boolean starterOffered, int focusMinutes, int breakMinutes,
-                          boolean keepScreenOn) {
+                          boolean keepScreenOn, boolean driveBackupEnabled, boolean driveBackupReady,
+                          Instant lastDriveBackupAt) {
         public static UserDto of(UserAccount u) {
             return new UserDto(u.getId(), u.getEmail(), u.getDisplayName(), u.getTimezone(), u.isDigestEnabled(),
                 u.getDigestTime().toString(), u.getStarterOfferedAt() != null, u.getFocusMinutes(),
-                u.getBreakMinutes(), u.isKeepScreenOn());
+                u.getBreakMinutes(), u.isKeepScreenOn(), u.isDriveBackupEnabled(),
+                u.getGoogleRefreshToken() != null, u.getLastDriveBackupAt());
         }
     }
 
     public record PatchUser(JsonNullable<String> displayName, JsonNullable<String> timezone,
                             JsonNullable<Boolean> digestEnabled, JsonNullable<String> digestTime,
                             JsonNullable<Integer> focusMinutes, JsonNullable<Integer> breakMinutes,
-                            JsonNullable<Boolean> keepScreenOn) {}
+                            JsonNullable<Boolean> keepScreenOn, JsonNullable<Boolean> driveBackupEnabled) {}
 
     public record StarterRequest(List<String> sources, List<StarterMenuItem> menuItems) {}
 

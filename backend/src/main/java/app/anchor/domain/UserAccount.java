@@ -45,6 +45,15 @@ public class UserAccount {
     @Column(name = "keep_screen_on")
     private boolean keepScreenOn;
 
+    @Column(name = "google_refresh_token")
+    private String googleRefreshToken;
+
+    @Column(name = "drive_backup_enabled")
+    private boolean driveBackupEnabled;
+
+    @Column(name = "last_drive_backup_at")
+    private Instant lastDriveBackupAt;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 

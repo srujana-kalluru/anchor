@@ -84,6 +84,9 @@ export interface User {
   focusMinutes: number;
   breakMinutes: number;
   keepScreenOn: boolean;
+  driveBackupEnabled: boolean;
+  driveBackupReady: boolean;
+  lastDriveBackupAt: string | null;
 }
 
 export interface WeekStats {
