@@ -49,7 +49,7 @@ public class UserAccount {
     private String googleRefreshToken;
 
     @Column(name = "drive_backup_enabled")
-    private boolean driveBackupEnabled;
+    private boolean driveBackupEnabled = true;
 
     @Column(name = "last_drive_backup_at")
     private Instant lastDriveBackupAt;
