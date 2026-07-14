@@ -25,6 +25,14 @@ export class SupabaseService {
     });
     this.client.auth.onAuthStateChange((_event, session) => {
       this.session.set(session);
+      // Google's token arrives only on the OAuth callback and is dropped on session
+      // refresh; keep it for its real lifetime so Drive calls don't re-authorize hourly.
+      if (session?.provider_token) {
+        localStorage.setItem('anchor.gtoken', JSON.stringify({
+          t: session.provider_token,
+          e: Date.now() + 50 * 60_000
+        }));
+      }
     });
   }
 
@@ -35,21 +43,33 @@ export class SupabaseService {
     });
   }
 
-  /** Re-runs Google sign-in asking for Drive file access; used by backup. */
+  /**
+   * Re-runs Google sign-in asking for Drive file access. Google shows the consent
+   * screen only the first time; afterwards this is a silent redirect and back.
+   */
   async connectDrive(): Promise<void> {
+    const email = this.session()?.user?.email;
     await this.client.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: location.origin + location.pathname,
         scopes: 'https://www.googleapis.com/auth/drive.file',
-        queryParams: { prompt: 'consent' }
+        queryParams: email ? { login_hint: email } : {}
       }
     });
   }
 
-  /** Google's own access token; present only while the OAuth grant is fresh. */
+  /** Google's own access token: the live one, or the cached one while still valid. */
   providerToken(): string | null {
-    return this.session()?.provider_token ?? null;
+    const live = this.session()?.provider_token;
+    if (live) return live;
+    try {
+      const cached = JSON.parse(localStorage.getItem('anchor.gtoken') ?? 'null');
+      if (cached && cached.e > Date.now()) return cached.t as string;
+    } catch {
+      // Fall through.
+    }
+    return null;
   }
 
   async signOut(): Promise<void> {
