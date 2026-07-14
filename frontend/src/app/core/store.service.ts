@@ -502,18 +502,6 @@ export class StoreService {
     void this.persist();
   }
 
-  async submitStarter(sources: string[], menuItems: { course: string; label: string; durationMinutes: number | null }[]): Promise<void> {
-    const u = this.user();
-    if (u) this.user.set({ ...u, starterOffered: true });
-    try {
-      await this.api.write('POST', '/api/v1/users/me/starter', { sources, menuItems });
-      this.sources.set(await this.api.get<Source[]>('/api/v1/sources'));
-      this.menuItems.set(await this.api.get<MenuItem[]>('/api/v1/dopamine-menu'));
-    } catch (e) {
-      this.swallowQueued(e);
-    }
-    void this.persist();
-  }
 
   async deleteAccount(): Promise<void> {
     await this.api.write('DELETE', '/api/v1/users/me');

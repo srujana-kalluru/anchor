@@ -136,12 +136,4 @@ export const MENU_COURSES: { key: MenuCourse; label: string; hint: string }[] = 
   { key: 'special', label: 'Specials', hint: 'open-ended' }
 ];
 
-export const STARTER_SOURCES = ['Email', 'In Person', 'Slack', 'Phone', 'WhatsApp'];
 
-export const STARTER_MENU: { course: MenuCourse; label: string; durationMinutes: number | null }[] = [
-  { course: 'appetiser', label: 'Step outside', durationMinutes: 3 },
-  { course: 'side', label: 'Instrumental playlist', durationMinutes: null },
-  { course: 'entree', label: 'Short walk outside', durationMinutes: 15 },
-  { course: 'dessert', label: 'Social media', durationMinutes: 10 },
-  { course: 'special', label: 'Gym session', durationMinutes: null }
-];

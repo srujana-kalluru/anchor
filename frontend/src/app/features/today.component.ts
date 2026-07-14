@@ -4,11 +4,10 @@ import { Task } from '../core/models';
 import { ageBand, ageBasis, localIsoDate } from '../core/ageing';
 import { TaskCardComponent } from './task-card.component';
 import { CaptureSheetComponent } from './capture-sheet.component';
-import { StarterSheetComponent } from './starter-sheet.component';
 
 @Component({
   selector: 'app-today',
-  imports: [TaskCardComponent, CaptureSheetComponent, StarterSheetComponent],
+  imports: [TaskCardComponent, CaptureSheetComponent],
   template: `
     <div class="page">
       <div class="greet">{{ greeting() }}</div>
@@ -73,16 +72,12 @@ import { StarterSheetComponent } from './starter-sheet.component';
     @if (captureOpen()) {
       <app-capture-sheet (close)="captureOpen.set(false)" (saved)="onCaptured()" />
     }
-    @if (starterOpen()) {
-      <app-starter-sheet (done)="starterOpen.set(false)" />
-    }
   `
 })
 export class TodayComponent {
   store = inject(StoreService);
 
   captureOpen = signal(false);
-  starterOpen = signal(false);
   simmerExpanded = signal(false);
   upNextExpanded = signal(false);
 
@@ -131,10 +126,6 @@ export class TodayComponent {
   });
 
   onCaptured(): void {
-    const user = this.store.user();
-    if (user && !user.starterOffered) {
-      this.starterOpen.set(true);
-    }
     // Bring the new task into view.
     setTimeout(() => {
       const newest = this.upNext()[0];

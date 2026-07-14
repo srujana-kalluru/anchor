@@ -37,15 +37,45 @@ public class CurrentUser {
         UUID id = UUID.fromString(jwt.getSubject());
         return users.findById(id).orElseGet(() -> {
             em.createNativeQuery("""
-                    insert into users (id, email, display_name) values (:id, :email, :name)
+                    insert into users (id, email, display_name, starter_offered_at) values (:id, :email, :name, now())
                     on conflict (id) do nothing
                     """)
                 .setParameter("id", id)
                 .setParameter("email", jwt.getClaimAsString("email"))
                 .setParameter("name", displayNameFrom(jwt))
                 .executeUpdate();
+            seedDefaults(id);
             return users.findById(id).orElseThrow();
         });
+    }
+
+    /**
+     * Every new account starts with a small set of sources and one break idea per course,
+     * so the Source field and the Dopamine Menu are useful from the first task. Seeding
+     * happens here (idempotently) instead of via a client-side prompt, which had let a user
+     * re-add items they already owned and create duplicates.
+     */
+    private void seedDefaults(UUID uid) {
+        em.createNativeQuery("""
+                insert into sources (id, user_id, name)
+                select gen_random_uuid(), :uid, s.name
+                from (values ('Email'),('In Person'),('Slack'),('Phone'),('WhatsApp')) as s(name)
+                where not exists (
+                  select 1 from sources x where x.user_id = :uid and lower(x.name) = lower(s.name) and x.deleted_at is null)
+                """).setParameter("uid", uid).executeUpdate();
+        em.createNativeQuery("""
+                insert into dopamine_menu_items (id, user_id, course, label, duration_minutes, sort_order)
+                select gen_random_uuid(), :uid, m.course, m.label, m.mins, 0
+                from (values
+                  ('appetiser','Step outside',3),
+                  ('side','Instrumental playlist',null::int),
+                  ('entree','Short walk outside',15),
+                  ('dessert','Social media',10),
+                  ('special','Gym session',null::int)
+                ) as m(course,label,mins)
+                where not exists (
+                  select 1 from dopamine_menu_items x where x.user_id = :uid and x.course = m.course and x.deleted_at is null)
+                """).setParameter("uid", uid).executeUpdate();
     }
 
     private Jwt jwt() {
